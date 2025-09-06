@@ -47,3 +47,48 @@ You’ll get rich JSON like:
 If you want me to tailor the heuristics (e.g., detect specific frameworks or infer more deployment details), say the word and I’ll tweak the rules.
 
 ---
+
+Manual intervention to update test script
+
+
+---
+
+Prompt 2 (free GPT 5)
+
+```
+add deployment-suggestion service 3 that takes output of language context and codebase context and generate a suggestion sentence for deployment. 
+
+account for single docker container, multi-microservice with many Dockerfile + docker-compose, and Kubernetes via minikube
+
+service 4 "containerize-project" use service 3 output and input zip folder and apply suggestions
+
+output of service 4 is a zip file artifact
+
+use huggingface model and transformer pipeline if needed
+```
+
+Output of prompt 2:
+
+Done — I added two new services and updated the project:
+
+* **deployment-suggestion** (service 3) — `/suggest` (POST)
+  Accepts `language_context` + `codebase_context` JSON and returns a concise suggestion plus structured type: `single-container`, `multi-microservice`, or `kubernetes-minikube`. It will optionally use a Hugging Face `transformers` pipeline if a model is available in the container.
+
+* **containerize-project** (service 4) — `/apply` (POST)
+  Accepts `suggestion_text` (optional), `suggestion_type` (optional), and `repo_zip` (required). Generates an artifact ZIP containing Dockerfiles, docker-compose, or Kubernetes manifests for minikube depending on the suggestion. The generated artifact is saved into `/mnt/data` and the API returns its path.
+
+I updated:
+
+* `docker-compose.yml` to include the two new services.
+* `README.md` with a description and a sample `test.sh`.
+* `test.sh` in the project root (executable) with the sequence: call orchestrator → call suggestion → call containerize-project.
+
+Download the updated project ZIP here:
+[sandbox:/mnt/data/deploy-context-suite-updated.zip](sandbox:/mnt/data/deploy-context-suite-updated.zip)
+
+How would you like me to proceed next?
+
+* Run a demo with a sample `hello_world.zip` and show the exact `result.json` and artifact?
+* Tweak the suggestion text style (short one-liner vs. detailed paragraphs)?
+
+---

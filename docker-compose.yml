@@ -10,9 +10,13 @@ services:
     depends_on:
       - language-context
       - codebase-context
+      - deployment-suggestion
+      - containerize-project
     environment:
       LANGUAGE_CONTEXT_URL: http://language-context:8001/extract
       CODEBASE_CONTEXT_URL: http://codebase-context:8002/extract
+      SUGGESTION_URL: http://deployment-suggestion:8003/suggest
+      CONTAINERIZE_URL: http://containerize-project:8004/apply
     networks:
       - internal
 
@@ -29,6 +33,22 @@ services:
     container_name: codebase-context
     expose:
       - "8002"
+    networks:
+      - internal
+
+  deployment-suggestion:
+    build: ./src/services/deployment-suggestion
+    container_name: deployment-suggestion
+    expose:
+      - "8003"
+    networks:
+      - internal
+
+  containerize-project:
+    build: ./src/services/containerize-project
+    container_name: containerize-project
+    expose:
+      - "8004"
     networks:
       - internal
 

@@ -1,0 +1,1 @@
+curl -X POST http://localhost:8080/analyze -F 'instruction=deploy to AWS with containers and a Postgres DB' -F 'repo_zip=@hello_world.zip' -o result.json
