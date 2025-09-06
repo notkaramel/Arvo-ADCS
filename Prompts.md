@@ -92,3 +92,90 @@ How would you like me to proceed next?
 * Tweak the suggestion text style (short one-liner vs. detailed paragraphs)?
 
 ---
+
+Prompt 3 (GPT 4o): update orchestrator source code
+
+Prompt 3 response: 
+
+Got it! We’ll update the **orchestrator** so that it fully handles all internal service calls. The user only interacts with **one endpoint**, `/analyze`, which:
+
+1. Sends the instruction to **language-context**.
+2. Sends the repo ZIP to **codebase-context**.
+3. Sends both results to **deployment-suggestion**.
+4. Optionally calls **containerize-project** to produce the artifact ZIP.
+5. Returns a **single aggregated JSON** including: `language_context`, `codebase_context`, `deployment_suggestion`, and optionally `artifact_zip`.
+
+Here’s a full updated `orchestrator/app.py`:
+
+```python
+from fastapi import FastAPI, UploadFile, File, Form, HTTPException
+import os
+import requests
+import json
+
+app = FastAPI(title="Orchestrator", version="0.2.0")
+
+# Internal URLs
+LANG_URL = os.getenv("LANGUAGE_CONTEXT_URL", "http://language-context:8001/extract")
+CODE_URL = os.getenv("CODEBASE_CONTEXT_URL", "http://codebase-context:8002/extract")
+SUGGESTION_URL = os.getenv("SUGGESTION_URL", "http://deployment-suggestion:8003/suggest")
+CONTAINERIZE_URL = os.getenv("CONTAINERIZE_URL", "http://containerize-project:8004/apply")
+
+@app.post("/analyze")
+async def analyze(instruction: str = Form(...), repo_zip: UploadFile = File(...), generate_artifact: bool = Form(False)):
+    # 1. Language context extraction
+    lang_resp = requests.post(LANG_URL, data={"instruction": instruction})
+    if lang_resp.status_code != 200:
+        raise HTTPException(status_code=500, detail="language-context service failed")
+    language_context = lang_resp.json()
+    
+    # 2. Codebase context extraction
+    code_files = {"repo_zip": (repo_zip.filename, await repo_zip.read(), "application/zip")}
+    code_resp = requests.post(CODE_URL, files=code_files)
+    if code_resp.status_code != 200:
+        raise HTTPException(status_code=500, detail="codebase-context service failed")
+    codebase_context = code_resp.json()
+    
+    # 3. Deployment suggestion
+    suggest_payload = {
+        "language_context": language_context,
+        "codebase_context": codebase_context
+    }
+    suggest_resp = requests.post(SUGGESTION_URL, json=suggest_payload)
+    if suggest_resp.status_code != 200:
+        raise HTTPException(status_code=500, detail="deployment-suggestion service failed")
+    deployment_suggestion = suggest_resp.json()
+    
+    # 4. Containerize project (optional)
+    artifact_zip = None
+    if generate_artifact:
+        files = {"repo_zip": (repo_zip.filename, await repo_zip.read(), "application/zip")}
+        data = {
+            "suggestion_text": deployment_suggestion.get("suggestion", {}).get("suggestion_text", ""),
+            "suggestion_type": deployment_suggestion.get("suggestion", {}).get("type", "")
+        }
+        cont_resp = requests.post(CONTAINERIZE_URL, data=data, files=files)
+        if cont_resp.status_code == 200:
+            artifact_zip = cont_resp.json().get("artifact_zip")
+    
+    return {
+        "language_context": language_context,
+        "codebase_context": codebase_context,
+        "deployment_suggestion": deployment_suggestion,
+        "artifact_zip": artifact_zip
+    }
+```
+
+### ✅ Key Features
+
+* **Single API endpoint:** `/analyze`.
+* Internal services communicate **only via Docker network**.
+* Supports optional artifact generation (`generate_artifact=True`).
+* Returns a single aggregated JSON with all context + suggestion + artifact path.
+
+---
+
+If you want, I can also **update `docker-compose.yml`** and **`test.sh`** to match this new single-entrypoint orchestrator flow so users never need to call other services manually.
+
+Do you want me to do that next?
+---
