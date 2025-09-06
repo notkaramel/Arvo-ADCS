@@ -1,0 +1,37 @@
+
+version: "3.9"
+
+services:
+  orchestrator:
+    build: ./src/orchestrator
+    container_name: orchestrator
+    ports:
+      - "8080:8080"
+    depends_on:
+      - language-context
+      - codebase-context
+    environment:
+      LANGUAGE_CONTEXT_URL: http://language-context:8001/extract
+      CODEBASE_CONTEXT_URL: http://codebase-context:8002/extract
+    networks:
+      - internal
+
+  language-context:
+    build: ./src/services/language-context
+    container_name: language-context
+    expose:
+      - "8001"
+    networks:
+      - internal
+
+  codebase-context:
+    build: ./src/services/codebase-context
+    container_name: codebase-context
+    expose:
+      - "8002"
+    networks:
+      - internal
+
+networks:
+  internal:
+    driver: bridge
