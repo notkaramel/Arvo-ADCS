@@ -5,10 +5,15 @@ services:
     ports:
       - "80:80"
       - "443:443"
-    depends_on:
-      - orchestrator
-    networks:
-      - internal
+    develop:
+      watch:
+        - action: sync
+          path: ./
+          target: /app/
+          ignore:
+            - node_modules/
+        - action: rebuild
+          path: package.json
 
   orchestrator:
     build: ./src/orchestrator
@@ -29,7 +34,7 @@ services:
     develop:
       watch:
         - action: sync
-          path: ./
+          path: ./src/orchestrator/
           target: /app/
           ignore:
             - node_modules/
@@ -44,7 +49,7 @@ services:
     develop:
       watch:
         - action: rebuild
-          path: ./
+          path: ./src/services/language-context/
           target: /app/
           ignore:
             - __pycache__/
@@ -57,7 +62,7 @@ services:
     develop:
       watch:
         - action: rebuild
-          path: ./
+          path: ./src/services/codebase-context/
           target: /app/
           ignore:
             - __pycache__/

@@ -64,9 +64,9 @@
         }
 
         const formData = new FormData();
-        formData.append("instruction", instruction); // ✅ matches Bun backend
+        formData.append("instruction", instruction);
         if (fileInput.files.length > 0) {
-          formData.append("repo_zip", fileInput.files[0]); // ✅ matches Bun backend
+          formData.append("repo_zip", fileInput.files[0]);
         }
 
         logsBox.value += "Sending request...\n";
@@ -74,7 +74,7 @@
         try {
           const res = await fetch("http://orchestrator:8080/upload", {
             method: "POST",
-            body: formData,
+            body: formData, 
           });
           const data = await res.text();
           logsBox.value += `Response: ${data}\n`;

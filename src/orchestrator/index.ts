@@ -28,23 +28,12 @@ app.post("/upload", upload.single("repo_zip"), async (req, res) => {
   console.log("--------- File uploaded successfully ---------\n\n");
 
   // Send instruction to language model service
-  let languageContext = languageContextExtract(instruction).catch((error) => {
-    console.error(
-      "Error occurred while sending instruction to language context service:",
-      error
-    );
-  });
+  let languageContext = languageContextExtract(instruction);
 
   // Send file to codebase context extraction service
-  let codebaseContext = codebaseContextExtract(file.buffer).catch((error) => {
-    console.error(
-      "Error occurred while sending file to codebase context extraction service:",
-      error
-    );
-  });
+  let codebaseContext = codebaseContextExtract(file);
 
   console.log("OUTPUT:", languageContext, codebaseContext);
-  
 });
 
 app.listen(port, () => {
@@ -62,14 +51,23 @@ async function languageContextExtract(instruction: string) {
       "Content-Type": "application/json",
     },
     body: JSON.stringify({ instruction }),
-  }).then((response) => {
-    if (!response.ok) {
-      throw new Error(
-        `Language context service responded with status ${response.status}`
+  })
+    .then((response) => {
+      if (!response.ok) {
+        throw new Error(
+          `Language context service responded with status ${response.status}`
+        );
+      }
+      console.log(response);
+      
+      return response.json();
+    })
+    .catch((error) => {
+      console.error(
+        "Error occurred while sending instruction to language context service:",
+        error
       );
-    }
-    return response.json();
-  });
+    });
   console.log("--------- Instruction sent successfully ---------");
 
   if (DEBUG)
@@ -78,7 +76,7 @@ async function languageContextExtract(instruction: string) {
   return languageContext;
 }
 
-async function codebaseContextExtract(fileBuffer: Buffer) {
+async function codebaseContextExtract(file: Express.Multer.File) {
   console.log(
     "--------- Sending file to codebase context extraction service ---------"
   );
@@ -89,15 +87,22 @@ async function codebaseContextExtract(fileBuffer: Buffer) {
       "X-Filename": file.originalname,
     },
     body: file.buffer,
-  }).then((response) => {
-    if (!response.ok) {
-      throw new Error(
-        `Codebase context extraction service responded with status ${response.status}`
-      );
-    }
+  })
+    .then((response) => {
+      if (!response.ok) {
+        throw new Error(
+          `Codebase context extraction service responded with status ${response.status}`
+        );
+      }
 
-    return response.json();
-  });
+      return response.json();
+    })
+    .catch((error) => {
+      console.error(
+        "Error occurred while sending file to codebase context extraction service:",
+        error
+      );
+    });
   console.log("--------- File sent successfully ---------\n\n");
 
   if (DEBUG)
