@@ -70,7 +70,6 @@ services:
           ignore:
             - __pycache__/
 
-
   deployment-suggestion:
     build: ./src/services/deployment-suggestion
     container_name: deployment-suggestion

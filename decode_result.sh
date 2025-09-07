@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
 
 JSON_FILE="result.json"
-ZIP_FILE="terraform_generated.zip"
+ZIP_FILE="result.zip"
 
-EXTRACT_DIR="terraform_generated"
+EXTRACT_DIR="result"
 
 # Step 1: Convert JSON Buffer (decimal array) to ZIP
-jq -r '.terraform_files.data[]' "$JSON_FILE" \
+jq -r '.terraformFiles.data[]' "$JSON_FILE" \
   | awk '{printf "%02x", $1}' \
   | xxd -r -p > "$ZIP_FILE"
 
@@ -23,3 +23,6 @@ echo "✅ Files extracted to folder: $EXTRACT_DIR"
 # Step 4 (optional): List extracted files
 ls -R "$EXTRACT_DIR"
 echo "✅ Extraction complete."
+
+# Optional: Clean up the ZIP file if not needed
+mv "$ZIP_FILE" $EXTRACT_DIR/

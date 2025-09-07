@@ -96,8 +96,13 @@ app.post("/upload", upload.single("repo_zip"), async (req, res) => {
     await sleep(1000);
   }
 
-  // Send back the Terraform files to the client
-  res.json({ terraform_files: terraformFiles });
+  // Send back all the logs
+  res.json({ 
+    languageContext: languageContext,
+    codebaseContext: codebaseContext,
+    suggestions: suggestionsJSON,
+    terraformFiles: terraformFiles
+  });
 
   if (DEBUG)
     console.log("* Final response: ", { terraform_files: terraformFiles });
@@ -179,7 +184,7 @@ async function codebaseContextExtract(file: Express.Multer.File) {
 }
 
 async function suggestDeployment(languageContext: any, codebaseContext: any) {
-  console.log("--------- Sending data to suggestions service ---------");
+  console.log("✨ Sending data to suggestions service");
   let reqBody = JSON.stringify({
     language_context: languageContext,
     codebase_context: codebaseContext,
@@ -197,7 +202,7 @@ async function suggestDeployment(languageContext: any, codebaseContext: any) {
         error
       );
     });
-  console.log("--------- Data sent successfully ---------");
+  console.log("🔥 Suggestion created and sending back to orchestrator");
 
   if (DEBUG) console.log("* Suggestions service responded: ", suggestions);
   return suggestions;
