@@ -27,3 +27,27 @@
 docker compose build
 docker compose up
 ```
+
+## Output
+```
+[antoine@LunarEclipse:~/Partage/Projects/Arvo-ADCS on main]
+% tree terraform_generated
+terraform_generated
+├── hello_world_webserver-main
+│   ├── app
+│   │   ├── app.py
+│   │   ├── requirements.txt
+│   │   ├── static
+│   │   │   └── style.css
+│   │   └── templates
+│   │       └── index.html
+│   └── README.md
+├── main.tf
+├── outputs.tf
+├── provider.tf
+├── README.md
+├── terraform_config.json
+└── variables.tf
+
+5 directories, 11 files
+```

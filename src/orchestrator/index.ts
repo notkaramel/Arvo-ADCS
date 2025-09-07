@@ -2,6 +2,7 @@ import express from "express";
 import multer from "multer";
 import cors from "cors";
 import { sleep } from "bun";
+import JSZip from "jszip";
 
 const app = express();
 
@@ -14,6 +15,43 @@ app.use(cors());
 app.get("/", (req, res) => {
   console.log("Received request at /");
   res.send("Hello World!");
+});
+
+app.get("/health", (req, res) => {
+  console.log("Received request at /health");
+  // Test connectivity to other services
+
+  let services = [
+    { name: "Language Context", url: "http://language-context:8080/" },
+    { name: "Codebase Context", url: "http://codebase-context:8080/" },
+    {
+      name: "Deployment Suggestion",
+      url: "http://deployment-suggestion:8080/",
+    },
+    { name: "Terraform Generation", url: "http://generate-terraform:8080/" },
+    // Add other services as needed
+  ];
+
+  let status: any = {};
+
+  services.forEach(async (service) => {
+    try {
+      let response = await fetch(service.url || "", { method: "GET" });
+      if (response.ok) {
+        console.log(`* ${service.name} service is healthy.`);
+        status[service.name] = "healthy";
+      } else {
+        console.error(
+          `* ${service.name} service is down! Status: ${response.status}`
+        );
+        status[service.name] = "unhealthy";
+      }
+    } catch (error) {
+      console.error(`* Error connecting to ${service.name} service:`, error);
+    }
+  });
+
+  res.json(status);
 });
 
 app.post("/upload", upload.single("repo_zip"), async (req, res) => {
@@ -51,8 +89,8 @@ app.post("/upload", upload.single("repo_zip"), async (req, res) => {
   }
 
   // Send suggestion to Terraform generation service
-  let terraformFiles = await generateTerraform(suggestionsJSON, file);
-  
+  let terraformFiles = await generateTerraform(suggestionsJSON as JSON, file);
+
   while (!terraformFiles) {
     console.log("Waiting for Terraform files to be available...");
     await sleep(1000);
@@ -61,8 +99,9 @@ app.post("/upload", upload.single("repo_zip"), async (req, res) => {
   // Send back the Terraform files to the client
   res.json({ terraform_files: terraformFiles });
 
-  if (DEBUG) console.log("* Final response: ", { terraform_files: terraformFiles });
-  
+  if (DEBUG)
+    console.log("* Final response: ", { terraform_files: terraformFiles });
+
   console.log("--------- Response sent successfully ---------");
 });
 
@@ -164,32 +203,43 @@ async function suggestDeployment(languageContext: any, codebaseContext: any) {
   return suggestions;
 }
 
-async function generateTerraform(suggestion: JSON, file: Express.Multer.File) {
+async function generateTerraform(
+  suggestion: JSON,
+  file: Express.Multer.File
+): Promise<Buffer> {
   console.log(
     "❗ Sending suggestion to Terraform generation service ---------"
   );
 
-  let terraformFiles = await fetch(`${process.env.TERRAFORM_URL}`, {
+  // 1️⃣ Send suggestion to Terraform service
+  const response = await fetch(`${process.env.GENERATE_TERRAFORM_URL}`, {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json, application/zip",
-      "X-Filename": file.originalname,
-    },
-    body: JSON.stringify({
-      suggestion: suggestion,
-      zip_file: file.buffer,
-    }),
-  })
-    .then((response) => response.json())
-    .catch((error) => {
-      console.error(
-        "Error occurred while sending suggestion to Terraform generation service:",
-        error
-      );
-    });
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ suggestion }),
+  });
 
-  console.log("✅ Suggestion sent successfully ---------");
+  if (!response.ok) {
+    throw new Error(`Terraform service returned ${response.status}`);
+  }
 
-  if (DEBUG) console.log("* Terraform generation service responded: ", terraformFiles);
-  return terraformFiles;
+  const terraformZipBuffer = Buffer.from(await response.arrayBuffer());
+
+  console.log("✅ Received Terraform ZIP ---------");
+
+  // 2️⃣ Load original repo ZIP and Terraform ZIP
+  const repoZip = await JSZip.loadAsync(file.buffer);
+  const tfZip = await JSZip.loadAsync(terraformZipBuffer);
+
+  // 3️⃣ Merge Terraform files into repo ZIP
+  tfZip.forEach((relativePath: any, fileEntry: any) => {
+    if (!fileEntry.dir) {
+      repoZip.file(relativePath, fileEntry.async("nodebuffer"));
+    }
+  });
+
+  // 4️⃣ Generate updated ZIP buffer
+  const updatedZipBuffer = await repoZip.generateAsync({ type: "nodebuffer" });
+
+  console.log("✅ Merged Terraform files into repo ZIP ---------");
+  return updatedZipBuffer;
 }

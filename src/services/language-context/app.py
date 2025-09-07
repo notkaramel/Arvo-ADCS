@@ -103,3 +103,8 @@ def extract(inst: Instruction):
         }
     }
     return result
+
+
+@app.get('/')
+async def index():
+    return {"message": "Codebase Context Extraction Service is running."}

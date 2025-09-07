@@ -9,6 +9,10 @@ app = FastAPI(title="Codebase Context Extraction", version="0.2.0")
 # detect_architecture, detect_containerization, collect_env_vars, parse_network
 # ... (unchanged) ...
 
+@app.get('/')
+async def index():
+    return {"message": "Codebase Context Extraction Service is running."}
+
 @app.post("/extract")
 async def extract(
     repo_url: Optional[str] = Form(default=None),
