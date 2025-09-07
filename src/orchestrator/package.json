@@ -6,6 +6,7 @@
   "devDependencies": {
     "@types/bun": "latest",
     "@types/express": "^5.0.3",
+    "@types/multer": "^2.0.0",
     "express": "^5.1.0"
   },
   "peerDependencies": {
@@ -14,5 +15,8 @@
   "scripts": {
     "start": "bun run index.js",
     "dev": "bun --hot index.js"
+  },
+  "dependencies": {
+    "multer": "^2.0.2"
   }
 }

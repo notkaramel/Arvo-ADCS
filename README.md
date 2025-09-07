@@ -18,6 +18,9 @@
   | **generate-terraform** | 6 | language + codebase context, environment variables | Terraform config files for GCP or Azure (zip or folder) |
   | **deploy-with-terraform** | 7 | Terraform config + containerized project | Starts deployment, exposes internal API to monitor/supervise, returns deployment status + endpoints |
 
+- API
+  - Input to Orchestrator: http://orchestrator:8080/upload
+
 ## Quick start
 
 ```bash

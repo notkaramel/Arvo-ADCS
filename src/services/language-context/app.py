@@ -66,7 +66,7 @@ def find_list(text: str, kws: List[str]) -> List[str]:
     t = text.lower()
     return sorted(set([kw for kw in kws if re.search(r"\b" + re.escape(kw) + r"\b", t)]))
 
-@app.post("/")
+@app.post("/extract")
 def extract(inst: Instruction):
     t = inst.instruction.strip()
     providers = find_keys(t, CLOUD_KEYWORDS) or ["unspecified"]
