@@ -9,11 +9,14 @@
 - Orchestrator
 - Microservices, in order of stages
   | Microservice | Order | Input | Output |
-  | ------------------------- | ----- | -------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-  | **language-context** | 1.1 | `instruction` (string) e.g., _"deploy to AWS with containers and a Postgres DB"_ | JSON with extracted context: `cloud_provider`, `infrastructure`, `deployment_targets`, and raw instruction |
-  | **codebase-context** | 1.2 | `repo_zip` (uploaded ZIP of project or GitHub repo) | JSON with `languages`, `package_manager`, `application_type`, `architecture`, `containerization` status, env variables, etc. |
-  | **deployment-suggestion** | 3 | JSON with `language_context` + `codebase_context` | JSON with structured `suggestion` including `type` (`single-container`, `multi-microservice`, or `kubernetes-minikube`), detailed `sentences`, and optional HuggingFace-refined `suggestion_text` |
-  | **containerize-project** | 4 | `suggestion_text`, `suggestion_type`, and `repo_zip` | ZIP artifact containing generated deployment setup (`Dockerfile`, `docker-compose.yml`, or `k8s/` manifests) |
+  | ------------------------- | ----- | -------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
+  | **language-context** | 1 | `instruction` string | JSON: `cloud_provider`, `infrastructure`, etc. |
+  | **codebase-context** | 2 | `repo_zip` | JSON: language, package manager, app type, architecture, containerized, env, network |
+  | **deployment-suggestion** | 3 | language + codebase context | JSON: `suggestion_text`, `type` (`single-docker`, `multi-docker`, `kubernetes-minikube`) |
+  | **containerize-project** | 4 | `repo_zip`, `suggestion` | ZIP: Dockerfiles, docker-compose, manifests |
+  | **containerization** | 5 | `repo_zip`, `deployment_suggestion` | Skip if project already containerized; otherwise generates Dockerfile/docker-compose ZIP |
+  | **generate-terraform** | 6 | language + codebase context, environment variables | Terraform config files for GCP or Azure (zip or folder) |
+  | **deploy-with-terraform** | 7 | Terraform config + containerized project | Starts deployment, exposes internal API to monitor/supervise, returns deployment status + endpoints |
 
 ## Quick start
 

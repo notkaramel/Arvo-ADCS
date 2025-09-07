@@ -23,7 +23,7 @@ def simple_dockerfile_for_language(lang_names):
         return "FROM golang:1.21-alpine\nWORKDIR /app\nCOPY . .\nRUN go build -o app ./...\nCMD [\"/app/app\"]\n"
     return "FROM alpine:3.18\nCOPY . /app\nCMD [\"/bin/sh\"]\n"
 
-@app.post("/apply")
+@app.post("/")
 async def apply(suggestion_text: Optional[str] = Form(None),
                 suggestion_type: Optional[str] = Form(None),
                 repo_zip: Optional[UploadFile] = File(None)):

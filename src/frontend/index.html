@@ -72,7 +72,7 @@
         logsBox.value += "Sending request...\n";
 
         try {
-          const res = await fetch("http://localhost:8080/", {
+          const res = await fetch("http://orchestrator:8080/", {
             method: "POST",
             body: formData,
           });

@@ -1,22 +1,32 @@
-
-version: "3.9"
-
 services:
+  frontend:
+    build: ./src/frontend
+    container_name: frontend
+    ports:
+      - "80:80"
+      - "443:443"
+    depends_on:
+      - orchestrator
+    networks:
+      - internal
+
   orchestrator:
     build: ./src/orchestrator
     container_name: orchestrator
     ports:
       - "8080:8080"
+    expose:
+      - "8080"
     depends_on:
       - language-context
       - codebase-context
       - deployment-suggestion
       - containerize-project
     environment:
-      LANGUAGE_CONTEXT_URL: http://language-context:8001/extract
-      CODEBASE_CONTEXT_URL: http://codebase-context:8002/extract
-      SUGGESTION_URL: http://deployment-suggestion:8003/suggest
-      CONTAINERIZE_URL: http://containerize-project:8004/apply
+      LANGUAGE_CONTEXT_URL: http://language-context:8001/
+      CODEBASE_CONTEXT_URL: http://codebase-context:8002/
+      SUGGESTION_URL: http://deployment-suggestion:8003/
+      CONTAINERIZE_URL: http://containerize-project:8004/
     networks:
       - internal
 

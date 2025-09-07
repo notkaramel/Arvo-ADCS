@@ -1,0 +1,11 @@
+.env
+.venv
+node_modules
+uploads
+dist
+*.pyc
+__pycache__
+.DS_Store
+.vscode
+
+OpenAI.md

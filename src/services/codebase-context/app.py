@@ -179,7 +179,7 @@ def parse_network(files: List[str]) -> Dict[str, List[dict]]:
                 pass
     return {"compose_ports": ports}
 
-@app.post("/extract")
+@app.post("/")
 async def extract(repo_url: Optional[str] = Form(default=None),
                   repo_zip: Optional[UploadFile] = File(default=None)):
     analyzed = False
