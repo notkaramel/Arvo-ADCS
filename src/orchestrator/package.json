@@ -18,7 +18,8 @@
     "dev": "bun --hot index.js"
   },
   "dependencies": {
-    "multer": "^2.0.2",
-    "cors": "^2.8.5"
+    "cors": "^2.8.5",
+    "ioredis": "^5.7.0",
+    "multer": "^2.0.2"
   }
 }

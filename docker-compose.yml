@@ -8,7 +8,7 @@ services:
     develop:
       watch:
         - action: sync
-          path: ./
+          path: ./src/frontend/
           target: /app/
           ignore:
             - node_modules/
@@ -26,18 +26,17 @@ services:
       VERBOSE: false
       LANGUAGE_CONTEXT_URL: http://language-context:8080/extract
       CODEBASE_CONTEXT_URL: http://codebase-context:8080/extract
-      SUGGESTION_URL: http://deployment-suggestion:8003/
-      CONTAINERIZE_URL: http://containerize-project:8004/
+      DEPLOYMENT_SUGGESTION_URL: http://deployment-suggestion:8080/suggest
+      CONTAINERIZE_URL: http://containerize-project:8080/
       CONTAINERIZATION_URL: http://containerization:8005/
       TERRAFORM_URL: http://generate-terraform:8006/
       DEPLOY_URL: http://deploy-with-terraform:8007/
+    command: bun --hot start
     develop:
       watch:
         - action: sync
-          path: ./src/orchestrator/
-          target: /app/
-          ignore:
-            - node_modules/
+          path: ./src/orchestrator/index.ts
+          target: /app/index.ts
         - action: rebuild
           path: package.json
 
@@ -72,17 +71,29 @@ services:
     build: ./src/services/deployment-suggestion
     container_name: deployment-suggestion
     expose:
-      - "8003"
-    networks:
-      - internal
+      - "8080"
+    develop:
+      watch:
+        - action: rebuild
+          path: ./src/services/deployment-suggestion/
+          target: /app/
+          ignore:
+            - __pycache__/
+    environment:
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
 
   containerize-project:
     build: ./src/services/containerize-project
     container_name: containerize-project
     expose:
-      - "8004"
-    networks:
-      - internal
+      - "8080"
+    develop:
+      watch:
+        - action: rebuild
+          path: ./src/services/containerize-project/
+          target: /app/
+          ignore:
+            - __pycache__/
 
   containerization:
     build: ./src/services/containerization
@@ -96,7 +107,7 @@ services:
     build: ./src/services/generate-terraform
     container_name: generate-terraform
     expose:
-      - "8006"
+      - "8080"
     networks:
       - internal
 
@@ -104,7 +115,7 @@ services:
     build: ./src/services/deploy-with-terraform
     container_name: deploy-with-terraform
     expose:
-      - "8007"
+      - "8080"
     networks:
       - internal
 

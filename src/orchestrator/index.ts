@@ -1,6 +1,7 @@
 import express from "express";
 import multer from "multer";
 import cors from "cors";
+import { sleep } from "bun";
 
 const app = express();
 
@@ -28,15 +29,41 @@ app.post("/upload", upload.single("repo_zip"), async (req, res) => {
   console.log("* File details:", file);
   console.log("* Instruction:", instruction);
 
-
   // Send instruction to language model service
-  let languageContext = languageContextExtract(instruction);
+  let languageContext = await languageContextExtract(instruction);
 
   // Send file to codebase context extraction service
-  let codebaseContext = codebaseContextExtract(file);
+  let codebaseContext = await codebaseContextExtract(file);
 
-  console.log("OUTPUT:", languageContext, codebaseContext);
-  res.json({ languageContext, codebaseContext });
+  while (!languageContext || !codebaseContext) {
+    console.log("Waiting for both contexts to be available...");
+    await sleep(1000);
+  }
+  // Send both contexts to suggestions service
+  let suggestionsJSON: JSON | unknown = await suggestDeployment(
+    languageContext,
+    codebaseContext
+  );
+
+  while (!suggestionsJSON) {
+    console.log("Waiting for suggestions to be available...");
+    await sleep(1000);
+  }
+
+  // Send suggestion to Terraform generation service
+  let terraformFiles = await generateTerraform(suggestionsJSON, file);
+  
+  while (!terraformFiles) {
+    console.log("Waiting for Terraform files to be available...");
+    await sleep(1000);
+  }
+
+  // Send back the Terraform files to the client
+  res.json({ terraform_files: terraformFiles });
+
+  if (DEBUG) console.log("* Final response: ", { terraform_files: terraformFiles });
+  
+  console.log("--------- Response sent successfully ---------");
 });
 
 app.listen(port, () => {
@@ -44,9 +71,7 @@ app.listen(port, () => {
 });
 
 async function languageContextExtract(instruction: string) {
-  console.log(
-    "--------- Sending instruction to language context service ---------"
-  );
+  console.log("❗ Sending instruction to language context service ---------");
 
   let languageContext = await fetch(`${process.env.LANGUAGE_CONTEXT_URL}`, {
     method: "POST",
@@ -69,7 +94,7 @@ async function languageContextExtract(instruction: string) {
         error
       );
     });
-  console.log("--------- Instruction sent successfully ---------");
+  console.log("✅ Instruction sent successfully ---------");
 
   if (DEBUG)
     console.log("* Language context service responded: ", languageContext);
@@ -79,7 +104,7 @@ async function languageContextExtract(instruction: string) {
 
 async function codebaseContextExtract(file: Express.Multer.File) {
   console.log(
-    "--------- Sending file to codebase context extraction service ---------"
+    "❗ Sending file to codebase context extraction service ---------"
   );
   let codebaseContext = await fetch(`${process.env.CODEBASE_CONTEXT_URL}`, {
     method: "POST",
@@ -104,7 +129,7 @@ async function codebaseContextExtract(file: Express.Multer.File) {
         error
       );
     });
-  console.log("--------- File sent successfully ---------");
+  console.log("✅ File sent successfully ---------");
 
   if (DEBUG)
     console.log(
@@ -114,3 +139,57 @@ async function codebaseContextExtract(file: Express.Multer.File) {
   return codebaseContext;
 }
 
+async function suggestDeployment(languageContext: any, codebaseContext: any) {
+  console.log("--------- Sending data to suggestions service ---------");
+  let reqBody = JSON.stringify({
+    language_context: languageContext,
+    codebase_context: codebaseContext,
+  });
+
+  let suggestions = await fetch(`${process.env.DEPLOYMENT_SUGGESTION_URL}`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: reqBody,
+  })
+    .then((response) => response.json())
+    .catch((error) => {
+      console.error(
+        "Error occurred while sending data to suggestions service:",
+        error
+      );
+    });
+  console.log("--------- Data sent successfully ---------");
+
+  if (DEBUG) console.log("* Suggestions service responded: ", suggestions);
+  return suggestions;
+}
+
+async function generateTerraform(suggestion: JSON, file: Express.Multer.File) {
+  console.log(
+    "❗ Sending suggestion to Terraform generation service ---------"
+  );
+
+  let terraformFiles = await fetch(`${process.env.TERRAFORM_URL}`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json, application/zip",
+      "X-Filename": file.originalname,
+    },
+    body: JSON.stringify({
+      suggestion: suggestion,
+      zip_file: file.buffer,
+    }),
+  })
+    .then((response) => response.json())
+    .catch((error) => {
+      console.error(
+        "Error occurred while sending suggestion to Terraform generation service:",
+        error
+      );
+    });
+
+  console.log("✅ Suggestion sent successfully ---------");
+
+  if (DEBUG) console.log("* Terraform generation service responded: ", terraformFiles);
+  return terraformFiles;
+}
