@@ -1,11 +1,14 @@
 import express from "express";
 import multer from "multer";
+import cors from "cors";
 
 const app = express();
+
 const port = 8080;
 const DEBUG = process.env.VERBOSE === "true" || false;
 
 const upload = multer({ storage: multer.memoryStorage() });
+app.use(cors());
 
 app.get("/", (req, res) => {
   console.log("Received request at /");
@@ -25,7 +28,6 @@ app.post("/upload", upload.single("repo_zip"), async (req, res) => {
   console.log("* File details:", file);
   console.log("* Instruction:", instruction);
 
-  console.log("--------- File uploaded successfully ---------\n\n");
 
   // Send instruction to language model service
   let languageContext = languageContextExtract(instruction);
@@ -34,6 +36,7 @@ app.post("/upload", upload.single("repo_zip"), async (req, res) => {
   let codebaseContext = codebaseContextExtract(file);
 
   console.log("OUTPUT:", languageContext, codebaseContext);
+  res.json({ languageContext, codebaseContext });
 });
 
 app.listen(port, () => {
@@ -58,8 +61,6 @@ async function languageContextExtract(instruction: string) {
           `Language context service responded with status ${response.status}`
         );
       }
-      console.log(response);
-      
       return response.json();
     })
     .catch((error) => {
@@ -103,7 +104,7 @@ async function codebaseContextExtract(file: Express.Multer.File) {
         error
       );
     });
-  console.log("--------- File sent successfully ---------\n\n");
+  console.log("--------- File sent successfully ---------");
 
   if (DEBUG)
     console.log(
@@ -112,3 +113,4 @@ async function codebaseContextExtract(file: Express.Multer.File) {
     );
   return codebaseContext;
 }
+
