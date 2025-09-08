@@ -10,7 +10,17 @@
   docker compose build
   docker compose up
   ```
-  - The frontend is available at localhost:3000
+  - The mock-up frontend is available at localhost:3000
+
+## System design & architecture
+
+- [Excalidraw - View the full system sketch](https://excalidraw.com/#json=TcLwhkfqWoNnIuzgUWSi4,HH90Q-VhyLNunH4vTPpzmg)
+
+- Backend System Architecture
+![Finalized Architecture](docs/Architecture_final.png)
+
+- Backend Orchestration Workflow
+![Finalized System Design & Workflow](docs/BackendWorkflow_final.png)
 
 ## API
 
@@ -33,16 +43,6 @@ src/
     ├── generate-terraform
     └── language-context
 ```
-
-## System design & architecture
-
-- [Excalidraw - View the full system sketch](https://excalidraw.com/#json=TcLwhkfqWoNnIuzgUWSi4,HH90Q-VhyLNunH4vTPpzmg)
-
-- Backend System Architecture
-![Finalized Architecture](docs/Architecture_final.png)
-
-- Backend Orchestration Workflow
-![Finalized System Design & Workflow](docs/BackendWorkflow_final.png)
 
 ## Implementation phase
 
