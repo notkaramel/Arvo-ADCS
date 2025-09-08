@@ -4,13 +4,22 @@
 - Designed (entirely) by @notkaramel, implemented with the help of ChatGPT 5 and Gemini 2.5 Flash.
 - To get started:
   - Copy `.env.sample` and rename the new file to `.env`
-  - Add your OpenAI API to `.env`
+  - Add your OpenAI API key to `.env`
   - Run, and assuming you have Docker ready
   ```sh
   docker compose build
   docker compose up
   ```
   - The mock-up frontend is available at localhost:3000
+
+## Unfinished Business
+
+- Figure out Terraform deployment service on the backend using the generated files. (I learned Terraform in 1 day)
+- Get user's access token and authentication to different cloud services (AWS, GCP, Azure, etc.)
+- Check user's cloud status
+- Chatbot behaviour: User input in the middle of the process
+- `containerize-project` microservice: Didn't have enough time
+
 
 ## System design & architecture
 
@@ -24,7 +33,7 @@
 
 ## API
 
-- Input to Orchestrator: http://orchestrator:8080/upload or http://localhost:8080/upload
+- Input to Orchestrator: http://localhost:8080/upload
 - Request body requires:
   - Deployment Instruction `instruction`, string type
   - ZIP file of the project
