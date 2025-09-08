@@ -14,13 +14,13 @@
 
 ## System design & architecture
 
-- [Excalidraw - View the full system sketch](https://excalidraw.com/#json=TcLwhkfqWoNnIuzgUWSi4,HH90Q-VhyLNunH4vTPpzmg)
+- [Excalidraw - View the full system sketch](https://excalidraw.com/#json=gInCXAHm8vH-obkX1AcWq,J8VFlhV40FrXe3AYpPRxRw)
 
 - Backend System Architecture
-![Finalized Architecture](docs/Architecture_final.png)
+  ![Finalized Architecture](docs/Architecture_final.png)
 
 - Backend Orchestration Workflow
-![Finalized System Design & Workflow](docs/BackendWorkflow_final.png)
+  ![Finalized System Design & Workflow](docs/BackendWorkflow_final.png)
 
 ## API
 
@@ -86,7 +86,9 @@ terraform_generated
 ```
 
 ## Archived design notes
+
 - Updated attempt:
+
   - Full system sketch: https://excalidraw.com/#json=3T5yRD1cPPOXs3K85h0fV,7p1pSMCrBKGi2ZZ-5tcmVg
   - ![Microservices Architecture](docs/Architecture2.png)
 
