@@ -101,22 +101,22 @@ services:
             - __pycache__/
             - .venv/
 
-  containerize-project:
-    build: ./src/services/containerize-project
-    container_name: containerize-project
-    expose:
-      - "8080"
-    develop:
-      watch:
-        - action: rebuild
-          path: ./src/services/containerize-project/
-          target: /app/
-          ignore:
-            - __pycache__/
+  # containerize-project:
+  #   build: ./src/services/containerize-project
+  #   container_name: containerize-project
+  #   expose:
+  #     - "8080"
+  #   develop:
+  #     watch:
+  #       - action: rebuild
+  #         path: ./src/services/containerize-project/
+  #         target: /app/
+  #         ignore:
+  #           - __pycache__/
 
 
-  deploy-with-terraform:
-    build: ./src/services/deploy-with-terraform
-    container_name: deploy-with-terraform
-    expose:
-      - "8080"
+  # deploy-with-terraform:
+  #   build: ./src/services/deploy-with-terraform
+  #   container_name: deploy-with-terraform
+  #   expose:
+  #     - "8080"

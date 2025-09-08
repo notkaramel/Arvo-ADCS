@@ -10,7 +10,7 @@ jq -r '.terraformFiles.data[]' "$JSON_FILE" \
   | awk '{printf "%02x", $1}' \
   | xxd -r -p > "$ZIP_FILE"
 
-echo "✅ ZIP file created: $ZIP_FILE"
+echo "ZIP file created"
 
 # Step 2: Create extraction directory
 mkdir -p "$EXTRACT_DIR"
@@ -18,7 +18,7 @@ mkdir -p "$EXTRACT_DIR"
 # Step 3: Unzip into the directory
 unzip -o "$ZIP_FILE" -d "$EXTRACT_DIR"
 
-echo "✅ Files extracted to folder: $EXTRACT_DIR"
+echo "Files extracted to folder: $EXTRACT_DIR"
 
 # Step 4 (optional): List extracted files
 ls -R "$EXTRACT_DIR"
